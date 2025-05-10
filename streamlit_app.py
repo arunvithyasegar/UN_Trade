@@ -48,7 +48,7 @@ st.markdown('<p class="main-header">Global Trade Data Analysis Dashboard</p>', u
 def load_data():
     try:
         # Try to load the CSV file
-        df = pd.read_csv('TradeData_5_10_2025_12_27_1_cleaned.csv', encoding='cp1252')
+        df = pd.read_csv('https://raw.githubusercontent.com/arunvithyasegar/UN_Trade_dataset/main/TradeData_5_10_2025_12_27_1.csv', encoding='cp1252')
         
         # Use primaryValue as the main value column, fallback to fobvalue if needed
         df['export_value'] = df['primaryValue'].fillna(df['fobvalue'])
@@ -623,7 +623,7 @@ if filtered_df is not None:
     st.markdown("""
     <div style="text-align: center; margin-top: 30px; padding: 20px; background-color: #f0f2f6; border-radius: 5px;">
         <p><b>Trade Data Analysis Dashboard</b> | Created with Streamlit</p>
-        <p style="font-size: 0.8rem;">Data source: TradeData_5_10_2025_12_27_1_cleaned.csv</p>
+        <p style="font-size: 0.8rem;">Data source:  https://raw.githubusercontent.com/arunvithyasegar/UN_Trade_dataset/main/TradeData_5_10_2025_12_27_1.csv</p>
     </div>
     """, unsafe_allow_html=True)
 
