@@ -11,7 +11,7 @@ from plotly.subplots import make_subplots
 # Set page configuration
 st.set_page_config(
     page_title="Guidance Tamil Nadu - Electrical Machinery Export Analysis",
-    page_icon="⚡",
+    page_icon="🔮",
     layout="wide",
     initial_sidebar_state="expanded"
 )
