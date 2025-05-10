@@ -6,44 +6,50 @@ import seaborn as sns
 from scipy import stats
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 # Set page configuration
 st.set_page_config(
-    page_title="Trade Data Analysis Dashboard",
-    page_icon="📊",
+    page_title="Guidance Tamil Nadu - Electrical Machinery Export Analysis",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Add custom CSS
+# Custom CSS for better styling
 st.markdown("""
 <style>
     .main-header {
         font-size: 2.5rem;
-        font-weight: 700;
-        color: #1E6091;
+        color: #1E3A8A;
         text-align: center;
         margin-bottom: 1rem;
     }
     .sub-header {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #2E86C1;
-        margin-top: 1rem;
-        margin-bottom: 0.5rem;
+        font-size: 1.8rem;
+        color: #2563EB;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+    .card {
+        background-color: #F3F4F6;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
     }
     .highlight {
-        background-color: #F0F8FF;
-        padding: 1rem;
-        border-radius: 0.5rem;
+        background-color: #DBEAFE;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Main header
-st.markdown('<p class="main-header">Global Trade Data Analysis Dashboard</p>', unsafe_allow_html=True)
+# Header
+st.markdown("<h1 class='main-header'>Electrical Machinery and Equipment Export Analysis (2016-2024)</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Guidance Tamil Nadu / Invest Tamil Nadu Assessment</p>", unsafe_allow_html=True)
 
-# Load the data
 @st.cache_data
 def load_data():
     try:
@@ -114,531 +120,551 @@ def load_data():
         st.error(f"Error loading data: {e}")
         return None, None, None
 
+# Create sidebar navigation
+st.sidebar.title("Navigation")
+page = st.sidebar.radio(
+    "Select Analysis Page",
+    ["Overview", "Data Preparation", "Growth Trend Analysis", "Volatility & Classification", "Statistical Analysis"]
+)
+
 # Load data
 filtered_df, pivot_df, growth_df = load_data()
 
-if filtered_df is not None:
-    # Add file uploader in sidebar for users to upload their own data
-    st.sidebar.title("Upload Data")
-    uploaded_file = st.sidebar.file_uploader("Upload your trade data CSV", type=["csv"])
+if filtered_df is None or pivot_df is None or growth_df is None:
+    st.error("Failed to load data. Please check the data source.")
+    st.stop()
+
+# Overview Page
+if page == "Overview":
+    st.markdown("<h2 class='sub-header'>Overview</h2>", unsafe_allow_html=True)
     
-    if uploaded_file is not None:
-        st.sidebar.success("File uploaded successfully! (Note: Currently using demo data)")
+    col1, col2 = st.columns(2)
     
-    # Add filters in sidebar
-    st.sidebar.title("Filters")
+    with col1:
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+        st.subheader("Dataset Information")
+        st.markdown("""
+        - **Source**: UN Comtrade Database
+        - **Period**: 2016-2024
+        - **Type**: Goods
+        - **Frequency**: Annual
+        - **HS Code**: 85 (Electrical machinery and equipment)
+        - **Trade Flow**: Export
+        - **Measure**: USD
+        </div>
+        """, unsafe_allow_html=True)
     
-    # Year filter
-    years = sorted([int(col) for col in pivot_df.columns if col.isdigit()])
-    start_year, end_year = st.sidebar.select_slider(
-        "Select Year Range",
-        options=years,
-        value=(min(years), max(years))
+    with col2:
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+        st.subheader("Key Metrics")
+        total_countries = len(pivot_df)
+        total_export_2024 = pivot_df['2024'].sum() / 1e9  # Convert to billions
+        avg_growth = growth_df['avg_growth'].mean() * 100  # Convert to percentage
+        
+        st.metric("Total Countries Analyzed", f"{total_countries}")
+        st.metric("Total Exports in 2024", f"${total_export_2024:.2f} Billion")
+        st.metric("Average Annual Growth Rate", f"{avg_growth:.2f}%")
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+    # World map of export values
+    st.markdown("<h3>Global Distribution of Electrical Machinery Exports (2024)</h3>", unsafe_allow_html=True)
+    
+    # Prepare data for map
+    map_data = pd.DataFrame({
+        'Country': pivot_df.index,
+        'Export_Value': pivot_df['2024'] / 1e9  # Convert to billions for better visualization
+    })
+    
+    fig = px.choropleth(
+        map_data,
+        locations='Country',
+        locationmode='country names',
+        color='Export_Value',
+        hover_name='Country',
+        color_continuous_scale='Viridis',
+        title='Electrical Machinery Exports by Country (2024, Billion USD)',
+        labels={'Export_Value': 'Export Value (Billion USD)'}
     )
     
-    # Growth rate filter
-    min_growth = float(growth_df['avg_growth'].min())
-    max_growth = float(growth_df['avg_growth'].max())
-    growth_range = st.sidebar.slider(
-        "Average Growth Rate Range",
-        min_value=min_growth,
-        max_value=max_growth,
-        value=(min_growth, max_growth),
-        format="%.2f"
+    fig.update_layout(height=600)
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Top 10 exporters
+    st.markdown("<h3>Top 10 Exporters in 2024</h3>", unsafe_allow_html=True)
+    top_exporters = pivot_df.sort_values('2024', ascending=False).head(10)
+    
+    fig = px.bar(
+        x=top_exporters.index,
+        y=top_exporters['2024'] / 1e9,
+        labels={'x': 'Country', 'y': 'Export Value (Billion USD)'},
+        title='Top 10 Electrical Machinery Exporters in 2024',
+        color=top_exporters['2024'] / 1e9,
+        color_continuous_scale='Viridis'
     )
     
-    # Classification filter
-    classifications = growth_df['classification'].unique().tolist()
-    selected_classifications = st.sidebar.multiselect(
-        "Country Classification",
-        options=classifications,
-        default=classifications
-    )
+    st.plotly_chart(fig, use_container_width=True)
+
+# Data Preparation Page
+elif page == "Data Preparation":
+    st.markdown("<h2 class='sub-header'>Data Preparation</h2>", unsafe_allow_html=True)
     
-    # Filter data based on selections
-    filtered_growth_df = growth_df[
-        (growth_df['avg_growth'] >= growth_range[0]) & 
-        (growth_df['avg_growth'] <= growth_range[1]) &
-        (growth_df['classification'].isin(selected_classifications))
-    ]
-    
-    # Number of countries to display in top/bottom lists
-    num_countries = st.sidebar.slider("Number of Countries to Display", 5, 20, 10)
-    
-    # Top and bottom countries
-    top_countries = filtered_growth_df.sort_values('avg_growth', ascending=False).head(num_countries).index.tolist()
-    bottom_countries = filtered_growth_df.sort_values('avg_growth').head(num_countries).index.tolist()
-    
-    # Create dashboard layout with tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["Overview", "Growth Analysis", "Country Classification", "Statistical Analysis"])
-    
-    with tab1:
-        st.markdown('<p class="sub-header">Export Trade Data Overview</p>', unsafe_allow_html=True)
-        
-        # Summary metrics
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            st.metric(
-                "Total Countries", 
-                len(filtered_growth_df),
-                delta=f"{len(filtered_growth_df) - len(growth_df)} from filters"
-            )
-        
-        with col2:
-            avg_growth = filtered_growth_df['avg_growth'].mean()
-            st.metric(
-                "Avg Annual Growth", 
-                f"{avg_growth:.2%}"
-            )
-        
-        with col3:
-            avg_volatility = filtered_growth_df['volatility'].mean()
-            st.metric(
-                "Avg Volatility", 
-                f"{avg_volatility:.4f}"
-            )
-        
-        with col4:
-            total_value = filtered_growth_df['value_2024'].sum() / 1e9
-            st.metric(
-                "Total 2024 Exports", 
-                f"${total_value:.2f}B"
-            )
-        
-        # Classification breakdown
-        st.markdown('<p class="sub-header">Country Classification Breakdown</p>', unsafe_allow_html=True)
-        
-        # Create a pie chart for classification distribution
-        classification_counts = filtered_growth_df['classification'].value_counts()
-        fig_pie = px.pie(
-            values=classification_counts.values,
-            names=classification_counts.index,
-            title="Distribution of Country Classifications",
-            color_discrete_sequence=px.colors.qualitative.Set2,
-            hole=0.4
-        )
-        fig_pie.update_traces(textposition='inside', textinfo='percent+label')
-        st.plotly_chart(fig_pie, use_container_width=True)
-        
-        # Show top and bottom countries
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown('<p class="sub-header">Top Growth Countries</p>', unsafe_allow_html=True)
-            top_df = filtered_growth_df.loc[top_countries, ['avg_growth', 'volatility', 'classification']].sort_values('avg_growth', ascending=False)
-            top_df['avg_growth'] = top_df['avg_growth'].apply(lambda x: f"{x:.2%}")
-            top_df['volatility'] = top_df['volatility'].apply(lambda x: f"{x:.4f}")
-            st.dataframe(top_df, use_container_width=True)
-        
-        with col2:
-            st.markdown('<p class="sub-header">Bottom Growth Countries</p>', unsafe_allow_html=True)
-            bottom_df = filtered_growth_df.loc[bottom_countries, ['avg_growth', 'volatility', 'classification']].sort_values('avg_growth')
-            bottom_df['avg_growth'] = bottom_df['avg_growth'].apply(lambda x: f"{x:.2%}")
-            bottom_df['volatility'] = bottom_df['volatility'].apply(lambda x: f"{x:.4f}")
-            st.dataframe(bottom_df, use_container_width=True)
-    
-    with tab2:
-        st.markdown('<p class="sub-header">Export Growth Trends Analysis</p>', unsafe_allow_html=True)
-        
-        # Country selector for trends
-        selected_countries = st.multiselect(
-            "Select Countries to Visualize Trends",
-            options=filtered_growth_df.index.tolist(),
-            default=top_countries[:3]
-        )
-        
-        if selected_countries:
-            # Create export value trend chart
-            trend_data = filtered_df[filtered_df['reporterDesc'].isin(selected_countries)]
-            trend_data['Year'] = trend_data['refYear'].astype(str)
-            trend_data['export_value_billions'] = trend_data['export_value'] / 1e9
-            
-            fig_trend = px.line(
-                trend_data,
-                x='Year',
-                y='export_value_billions',
-                color='reporterDesc',
-                markers=True,
-                title=f"Export Value Trends ({start_year}-{end_year})",
-                labels={'export_value_billions': 'Export Value (Billion USD)', 'reporterDesc': 'Country'}
-            )
-            fig_trend.update_layout(legend_title_text='Country')
-            st.plotly_chart(fig_trend, use_container_width=True)
-            
-            # Create YoY growth rate chart
-            growth_columns = [f'growth_{year}' for year in range(max(2017, start_year + 1), min(2025, end_year + 1))]
-            growth_data = filtered_growth_df.loc[selected_countries, growth_columns].reset_index()
-            growth_data_melted = pd.melt(
-                growth_data, 
-                id_vars=['reporterDesc'], 
-                value_vars=growth_columns,
-                var_name='Year', 
-                value_name='Growth Rate'
-            )
-            growth_data_melted['Year'] = growth_data_melted['Year'].str.replace('growth_', '')
-            
-            fig_growth = px.line(
-                growth_data_melted,
-                x='Year',
-                y='Growth Rate',
-                color='reporterDesc',
-                markers=True,
-                title=f"Year-over-Year Growth Rates ({start_year+1}-{end_year})",
-                labels={'reporterDesc': 'Country'}
-            )
-            fig_growth.update_layout(legend_title_text='Country')
-            fig_growth.update_yaxes(tickformat='.0%')
-            st.plotly_chart(fig_growth, use_container_width=True)
-        else:
-            st.warning("Please select at least one country to visualize trends.")
-    
-    with tab3:
-        st.markdown('<p class="sub-header">Country Classification Matrix</p>', unsafe_allow_html=True)
-        
-        # Create quadrant scatter plot
-        classification_colors = {
-            'Stable High-Growth': '#2ECC71',    # Green
-            'Volatile High-Growth': '#F39C12',  # Orange
-            'Stable Low-Growth': '#3498DB',     # Blue
-            'Volatile Low-Growth': '#E74C3C'    # Red
-        }
-        
-        # Allow user to select countries to highlight
-        highlight_countries = st.multiselect(
-            "Highlight Specific Countries",
-            options=filtered_growth_df.index.tolist(),
-            default=[]
-        )
-        
-        fig_scatter = go.Figure()
-        
-        # Add data points by classification
-        for classification in filtered_growth_df['classification'].unique():
-            subset = filtered_growth_df[filtered_growth_df['classification'] == classification]
-            
-            # Split into highlighted and non-highlighted points
-            if highlight_countries:
-                # Non-highlighted points
-                non_highlight = subset[~subset.index.isin(highlight_countries)]
-                fig_scatter.add_trace(go.Scatter(
-                    x=non_highlight['volatility'],
-                    y=non_highlight['avg_growth'],
-                    mode='markers',
-                    marker=dict(
-                        color=classification_colors.get(classification, '#AAAAAA'),
-                        size=10,
-                        opacity=0.6
-                    ),
-                    name=classification,
-                    text=non_highlight.index,
-                    hovertemplate='<b>%{text}</b><br>Growth: %{y:.2%}<br>Volatility: %{x:.4f}<extra></extra>'
-                ))
-                
-                # Highlighted points
-                highlight = subset[subset.index.isin(highlight_countries)]
-                if not highlight.empty:
-                    fig_scatter.add_trace(go.Scatter(
-                        x=highlight['volatility'],
-                        y=highlight['avg_growth'],
-                        mode='markers+text',
-                        marker=dict(
-                            color=classification_colors.get(classification, '#AAAAAA'),
-                            size=15,
-                            line=dict(width=2, color='black')
-                        ),
-                        textposition="top center",
-                        textfont=dict(size=12),
-                        text=highlight.index,
-                        name=f"{classification} (Highlighted)",
-                        hovertemplate='<b>%{text}</b><br>Growth: %{y:.2%}<br>Volatility: %{x:.4f}<extra></extra>'
-                    ))
-            else:
-                # No highlighting, just add all points
-                fig_scatter.add_trace(go.Scatter(
-                    x=subset['volatility'],
-                    y=subset['avg_growth'],
-                    mode='markers',
-                    marker=dict(
-                        color=classification_colors.get(classification, '#AAAAAA'),
-                        size=12,
-                        opacity=0.7
-                    ),
-                    name=classification,
-                    text=subset.index,
-                    hovertemplate='<b>%{text}</b><br>Growth: %{y:.2%}<br>Volatility: %{x:.4f}<extra></extra>'
-                ))
-        
-        # Add quadrant lines
-        fig_scatter.add_shape(
-            type="line", line=dict(dash="dash", color="gray"),
-            x0=growth_df['volatility'].min(), y0=growth_df['avg_growth'].median(),
-            x1=growth_df['volatility'].max(), y1=growth_df['avg_growth'].median()
-        )
-        fig_scatter.add_shape(
-            type="line", line=dict(dash="dash", color="gray"),
-            x0=growth_df['volatility'].median(), y0=growth_df['avg_growth'].min(),
-            x1=growth_df['volatility'].median(), y1=growth_df['avg_growth'].max()
-        )
-        
-        # Add quadrant labels
-        fig_scatter.add_annotation(
-            x=growth_df['volatility'].median()/2,
-            y=growth_df['avg_growth'].median() + (growth_df['avg_growth'].max() - growth_df['avg_growth'].median())/2,
-            text="Stable High-Growth",
-            showarrow=False,
-            font=dict(size=12, color="#2ECC71")
-        )
-        fig_scatter.add_annotation(
-            x=growth_df['volatility'].median() + (growth_df['volatility'].max() - growth_df['volatility'].median())/2,
-            y=growth_df['avg_growth'].median() + (growth_df['avg_growth'].max() - growth_df['avg_growth'].median())/2,
-            text="Volatile High-Growth",
-            showarrow=False,
-            font=dict(size=12, color="#F39C12")
-        )
-        fig_scatter.add_annotation(
-            x=growth_df['volatility'].median()/2,
-            y=growth_df['avg_growth'].median()/2,
-            text="Stable Low-Growth",
-            showarrow=False,
-            font=dict(size=12, color="#3498DB")
-        )
-        fig_scatter.add_annotation(
-            x=growth_df['volatility'].median() + (growth_df['volatility'].max() - growth_df['volatility'].median())/2,
-            y=growth_df['avg_growth'].median()/2,
-            text="Volatile Low-Growth",
-            showarrow=False,
-            font=dict(size=12, color="#E74C3C")
-        )
-        
-        # Update layout
-        fig_scatter.update_layout(
-            title='Country Classification: Growth Rate vs Volatility',
-            xaxis_title='Volatility (Coefficient of Variation)',
-            yaxis_title='Average Annual Growth Rate',
-            yaxis_tickformat='.0%',
-            legend_title_text='Classification',
-            height=600
-        )
-        
-        st.plotly_chart(fig_scatter, use_container_width=True)
-        
-        # Show classification summary
-        st.markdown('<p class="sub-header">Classification Summary</p>', unsafe_allow_html=True)
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            # Show classification counts
-            classification_counts = filtered_growth_df['classification'].value_counts().reset_index()
-            classification_counts.columns = ['Classification', 'Count']
-            
-            fig_bar = px.bar(
-                classification_counts,
-                x='Classification',
-                y='Count',
-                color='Classification',
-                color_discrete_map=classification_colors,
-                title="Number of Countries by Classification"
-            )
-            st.plotly_chart(fig_bar, use_container_width=True)
-        
-        with col2:
-            # Show average 2024 export value by classification
-            class_value = filtered_growth_df.groupby('classification')['value_2024'].mean().reset_index()
-            class_value['value_2024'] = class_value['value_2024'] / 1e9  # Convert to billions
-            
-            fig_value = px.bar(
-                class_value,
-                x='classification',
-                y='value_2024',
-                color='classification',
-                color_discrete_map=classification_colors,
-                title="Average 2024 Export Value by Classification (Billion USD)"
-            )
-            st.plotly_chart(fig_value, use_container_width=True)
-    
-    with tab4:
-        st.markdown('<p class="sub-header">Statistical Analysis</p>', unsafe_allow_html=True)
-        
-        # Distribution of growth rates
-        fig_hist = go.Figure()
-        
-        # Add histogram
-        fig_hist.add_trace(go.Histogram(
-            x=filtered_growth_df['avg_growth'],
-            nbinsx=20,
-            marker_color='lightblue',
-            opacity=0.7,
-            name='Growth Rate Distribution'
-        ))
-        
-        # Add normal distribution curve
-        mean = filtered_growth_df['avg_growth'].mean()
-        std = filtered_growth_df['avg_growth'].std()
-        x = np.linspace(filtered_growth_df['avg_growth'].min(), filtered_growth_df['avg_growth'].max(), 100)
-        y = stats.norm.pdf(x, mean, std) * len(filtered_growth_df) * (filtered_growth_df['avg_growth'].max() - filtered_growth_df['avg_growth'].min()) / 20
-        
-        fig_hist.add_trace(go.Scatter(
-            x=x,
-            y=y,
-            mode='lines',
-            line=dict(color='blue', dash='dash'),
-            name='Normal Distribution'
-        ))
-        
-        # Add percentile lines
-        p10 = filtered_growth_df['avg_growth'].quantile(0.1)
-        p90 = filtered_growth_df['avg_growth'].quantile(0.9)
-        
-        fig_hist.add_shape(
-            type="line", line=dict(dash="dash", color="red", width=2),
-            x0=p10, y0=0, x1=p10, y1=y.max() * 1.2
-        )
-        
-        fig_hist.add_shape(
-            type="line", line=dict(dash="dash", color="green", width=2),
-            x0=p90, y0=0, x1=p90, y1=y.max() * 1.2
-        )
-        
-        fig_hist.add_shape(
-            type="line", line=dict(dash="solid", color="blue", width=2),
-            x0=mean, y0=0, x1=mean, y1=y.max() * 1.2
-        )
-        
-        # Add annotations
-        fig_hist.add_annotation(
-            x=p10,
-            y=y.max() * 1.1,
-            text=f"10th Percentile: {p10:.2%}",
-            showarrow=False,
-            font=dict(color="red")
-        )
-        
-        fig_hist.add_annotation(
-            x=p90,
-            y=y.max() * 1.1,
-            text=f"90th Percentile: {p90:.2%}",
-            showarrow=False,
-            font=dict(color="green")
-        )
-        
-        fig_hist.add_annotation(
-            x=mean,
-            y=y.max() * 1.1,
-            text=f"Mean: {mean:.2%}",
-            showarrow=False,
-            font=dict(color="blue")
-        )
-        
-        fig_hist.update_layout(
-            title='Distribution of Average Annual Growth Rates',
-            xaxis_title='Average Annual Growth Rate',
-            yaxis_title='Frequency',
-            xaxis_tickformat='.0%',
-            height=500
-        )
-        
-        st.plotly_chart(fig_hist, use_container_width=True)
-        
-        # Boxplot
-        fig_box = go.Figure()
-        
-        fig_box.add_trace(go.Box(
-            y=filtered_growth_df['avg_growth'],
-            boxpoints='all',
-            jitter=0.3,
-            pointpos=-1.8,
-            marker=dict(
-                color='blue',
-                size=8,
-                opacity=0.5
-            ),
-            name='Growth Rates',
-            text=filtered_growth_df.index,
-            hovertemplate='<b>%{text}</b><br>Growth: %{y:.2%}<extra></extra>'
-        ))
-        
-        fig_box.update_layout(
-            title='Boxplot of Average Annual Growth Rates',
-            yaxis_title='Average Annual Growth Rate',
-            yaxis_tickformat='.0%',
-            height=400
-        )
-        
-        st.plotly_chart(fig_box, use_container_width=True)
-        
-        # Statistical summary
-        st.markdown('<p class="sub-header">Statistical Summary</p>', unsafe_allow_html=True)
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            stats_df = pd.DataFrame({
-                'Metric': ['Mean', 'Median', 'Standard Deviation', 'Min', 'Max', '10th Percentile', '90th Percentile'],
-                'Growth Rate': [
-                    f"{filtered_growth_df['avg_growth'].mean():.2%}",
-                    f"{filtered_growth_df['avg_growth'].median():.2%}",
-                    f"{filtered_growth_df['avg_growth'].std():.2%}",
-                    f"{filtered_growth_df['avg_growth'].min():.2%}",
-                    f"{filtered_growth_df['avg_growth'].max():.2%}",
-                    f"{filtered_growth_df['avg_growth'].quantile(0.1):.2%}",
-                    f"{filtered_growth_df['avg_growth'].quantile(0.9):.2%}"
-                ]
-            })
-            
-            st.dataframe(stats_df, use_container_width=True)
-        
-        with col2:
-            # Growth rate vs 2024 value scatter plot
-            fig_scatter_value = px.scatter(
-                filtered_growth_df.reset_index(),
-                x='avg_growth',
-                y='value_2024',
-                color='classification',
-                color_discrete_map=classification_colors,
-                size='value_2024',
-                size_max=50,
-                hover_name='reporterDesc',
-                hover_data={
-                    'reporterDesc': False,
-                    'avg_growth': ':.2%',
-                    'value_2024': ':,.2f',
-                    'classification': True
-                },
-                labels={
-                    'avg_growth': 'Average Annual Growth Rate',
-                    'value_2024': '2024 Export Value (USD)',
-                    'classification': 'Classification'
-                },
-                title='Growth Rate vs 2024 Export Value'
-            )
-            
-            fig_scatter_value.update_xaxes(tickformat='.0%')
-            fig_scatter_value.update_yaxes(type='log')
-            
-            st.plotly_chart(fig_scatter_value, use_container_width=True)
-    
-    # Footer
     st.markdown("""
-    <div style="text-align: center; margin-top: 30px; padding: 20px; background-color: #f0f2f6; border-radius: 5px;">
-        <p><b>Trade Data Analysis Dashboard</b> | Created with Streamlit</p>
-        <p style="font-size: 0.8rem;">Data source:  https://raw.githubusercontent.com/arunvithyasegar/UN_Trade_dataset/main/TradeData_5_10_2025_12_27_1.csv</p>
+    <div class='card'>
+    <h3>Data Cleaning Process</h3>
+    <ol>
+        <li>Imported the dataset from UN Comtrade Database</li>
+        <li>Filtered for HS Code 85 (Electrical machinery and equipment)</li>
+        <li>Filtered for Export trade flow only</li>
+        <li>Filtered for World as partner country</li>
+        <li>Selected essential columns for analysis</li>
+        <li>Filtered for countries with export values above $500 million in 2024</li>
+        <li>Created pivot table for year-wise analysis</li>
+        <li>Calculated growth rates and volatility metrics</li>
+    </ol>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Show sample of raw data
+    st.subheader("Sample of Cleaned Data")
+    st.dataframe(filtered_df.head(10))
+    
+    # Show pivot table
+    st.subheader("Pivot Table (Countries × Years)")
+    
+    # Format the pivot table for better readability
+    formatted_pivot = pivot_df.copy()
+    for col in formatted_pivot.columns:
+        formatted_pivot[col] = formatted_pivot[col].apply(lambda x: f"${x/1e9:.2f}B" if pd.notnull(x) else "N/A")
+    
+    st.dataframe(formatted_pivot)
+    
+    # Export option
+    st.subheader("Export Cleaned Data")
+    
+    @st.cache_data
+    def convert_df_to_csv(df):
+        return df.to_csv().encode('utf-8')
+    
+    csv = convert_df_to_csv(filtered_df)
+    st.download_button(
+        label="Download Cleaned Data as CSV",
+        data=csv,
+        file_name='cleaned_electrical_exports_data.csv',
+        mime='text/csv',
+    )
+
+# Growth Trend Analysis Page
+elif page == "Growth Trend Analysis":
+    st.markdown("<h2 class='sub-header'>Growth Trend Analysis</h2>", unsafe_allow_html=True)
+    
+    # YoY Growth Rates
+    st.subheader("Year-on-Year Growth Rates")
+    
+    # Get growth rate columns
+    growth_cols = [col for col in growth_df.columns if col.startswith('growth_')]
+    
+    # Format growth rates for display
+    growth_display = growth_df[growth_cols].copy()
+    for col in growth_display.columns:
+        growth_display[col] = growth_display[col].apply(lambda x: f"{x*100:.2f}%" if pd.notnull(x) else "N/A")
+    
+    st.dataframe(growth_display)
+    
+    # Top countries by average growth rate
+    st.subheader("Countries Ranked by Average Annual Growth Rate")
+    
+    top_growth = growth_df.sort_values('avg_growth', ascending=False)
+    
+    fig = px.bar(
+        x=top_growth.index,
+        y=top_growth['avg_growth'] * 100,  # Convert to percentage
+        labels={'x': 'Country', 'y': 'Average Annual Growth Rate (%)'},
+        title='Countries Ranked by Average Annual Growth Rate',
+        color=top_growth['avg_growth'] * 100,
+        color_continuous_scale='RdYlGn'
+    )
+    
+    fig.update_layout(xaxis={'categoryorder': 'total descending'})
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Export trends for top 3 countries
+    st.subheader("Export Trends for Top 3 Countries by Growth Rate")
+    
+    top3_countries = top_growth.head(3).index.tolist()
+    
+    # Create line plot for top 3 countries
+    fig = go.Figure()
+    
+    for country in top3_countries:
+        fig.add_trace(go.Scatter(
+            x=pivot_df.columns,
+            y=pivot_df.loc[country] / 1e9,  # Convert to billions
+            mode='lines+markers',
+            name=country
+        ))
+    
+    fig.update_layout(
+        title='Export Trends for Top 3 Countries by Growth Rate (2016-2024)',
+        xaxis_title='Year',
+        yaxis_title='Export Value (Billion USD)',
+        legend_title='Country',
+        hovermode='x unified'
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Comparison with global average
+    st.subheader("Growth Comparison with Global Average")
+    
+    # Calculate global average for each year
+    global_avg = pivot_df.mean() / 1e9  # Convert to billions
+    
+    # Create a DataFrame for the global average
+    global_avg_df = pd.DataFrame({
+        'Year': global_avg.index,
+        'Global Average': global_avg.values
+    })
+    
+    # Create line plot comparing top countries with global average
+    fig = go.Figure()
+    
+    # Add global average
+    fig.add_trace(go.Scatter(
+        x=global_avg_df['Year'],
+        y=global_avg_df['Global Average'],
+        mode='lines+markers',
+        name='Global Average',
+        line=dict(color='black', width=3, dash='dash')
+    ))
+    
+    # Add top 3 countries
+    for country in top3_countries:
+        fig.add_trace(go.Scatter(
+            x=pivot_df.columns,
+            y=pivot_df.loc[country] / 1e9,
+            mode='lines+markers',
+            name=country
+        ))
+    
+    fig.update_layout(
+        title='Export Trends: Top 3 Countries vs. Global Average (2016-2024)',
+        xaxis_title='Year',
+        yaxis_title='Export Value (Billion USD)',
+        legend_title='Country',
+        hovermode='x unified'
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+# Volatility & Classification Page
+elif page == "Volatility & Classification":
+    st.markdown("<h2 class='sub-header'>Volatility & Classification Analysis</h2>", unsafe_allow_html=True)
+    
+    # Top 10 most volatile exporters
+    st.subheader("Top 10 Most Volatile Exporters")
+    
+    top_volatile = growth_df.sort_values('volatility', ascending=False).head(10)
+    
+    fig = px.bar(
+        x=top_volatile.index,
+        y=top_volatile['volatility'],
+        labels={'x': 'Country', 'y': 'Volatility (Coefficient of Variation)'},
+        title='Top 10 Most Volatile Exporters',
+        color=top_volatile['volatility'],
+        color_continuous_scale='Reds'
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Compare volatility with average growth rate
+    st.subheader("Volatility vs. Average Growth Rate")
+    
+    fig = px.scatter(
+        x=growth_df['volatility'],
+        y=growth_df['avg_growth'] * 100,  # Convert to percentage
+        hover_name=growth_df.index,
+        labels={
+            'x': 'Volatility (Coefficient of Variation)',
+            'y': 'Average Annual Growth Rate (%)'
+        },
+        title='Volatility vs. Average Growth Rate',
+        color=growth_df['value_2024'] / 1e9,  # Color by export value in 2024
+        size=growth_df['value_2024'] / 1e9,  # Size by export value in 2024
+        color_continuous_scale='Viridis',
+        size_max=50
+    )
+    
+    # Add quadrant lines
+    fig.add_shape(
+        type="line", line=dict(dash="dash", width=1),
+        x0=growth_df['volatility'].median(), y0=growth_df['avg_growth'].min() * 100,
+        x1=growth_df['volatility'].median(), y1=growth_df['avg_growth'].max() * 100
+    )
+    fig.add_shape(
+        type="line", line=dict(dash="dash", width=1),
+        x0=growth_df['volatility'].min(), y0=growth_df['avg_growth'].median() * 100,
+        x1=growth_df['volatility'].max(), y1=growth_df['avg_growth'].median() * 100
+    )
+    
+    # Add quadrant labels
+    fig.add_annotation(
+        x=growth_df['volatility'].median() / 2,
+        y=growth_df['avg_growth'].median() * 100 * 1.5,
+        text="Stable High-Growth",
+        showarrow=False,
+        font=dict(size=14, color="green")
+    )
+    fig.add_annotation(
+        x=growth_df['volatility'].median() * 1.5,
+        y=growth_df['avg_growth'].median() * 100 * 1.5,
+        text="Volatile High-Growth",
+        showarrow=False,
+        font=dict(size=14, color="orange")
+    )
+    fig.add_annotation(
+        x=growth_df['volatility'].median() / 2,
+        y=growth_df['avg_growth'].median() * 100 * 0.5,
+        text="Stable Low-Growth",
+        showarrow=False,
+        font=dict(size=14, color="blue")
+    )
+    fig.add_annotation(
+        x=growth_df['volatility'].median() * 1.5,
+        y=growth_df['avg_growth'].median() * 100 * 0.5,
+        text="Volatile Low-Growth",
+        showarrow=False,
+        font=dict(size=14, color="red")
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Country Classification
+    st.subheader("Country Classification")
+    
+    # Count countries in each classification
+    classification_counts = growth_df['classification'].value_counts().reset_index()
+    classification_counts.columns = ['Classification', 'Count']
+    
+    # Create pie chart
+    fig = px.pie(
+        classification_counts,
+        values='Count',
+        names='Classification',
+        title='Distribution of Countries by Classification',
+        color='Classification',
+        color_discrete_map={
+            'Stable High-Growth': 'green',
+            'Volatile High-Growth': 'orange',
+            'Stable Low-Growth': 'blue',
+            'Volatile Low-Growth': 'red'
+        }
+    )
+    
+    col1, col2 = st.columns([2, 3])
+    
+    with col1:
+        st.plotly_chart(fig, use_container_width=True)
+    
+    with col2:
+        # Show table of countries by classification
+        st.markdown("<h4>Countries by Classification</h4>", unsafe_allow_html=True)
+        
+        # Create tabs for each classification
+        tabs = st.tabs(['Stable High-Growth', 'Volatile High-Growth', 'Stable Low-Growth', 'Volatile Low-Growth'])
+        
+        for i, classification in enumerate(['Stable High-Growth', 'Volatile High-Growth', 'Stable Low-Growth', 'Volatile Low-Growth']):
+            with tabs[i]:
+                countries = growth_df[growth_df['classification'] == classification].sort_values('avg_growth', ascending=False)
+                
+                # Display countries with their growth rate and volatility
+                for country in countries.index:
+                    growth_val = countries.loc[country, 'avg_growth'] * 100
+                    volatility_val = countries.loc[country, 'volatility']
+                    export_val = countries.loc[country, 'value_2024'] / 1e9
+                    
+                    st.markdown(f"""
+                    <div class='highlight'>
+                        <b>{country}</b><br>
+                        Growth Rate: {growth_val:.2f}%<br>
+                        Volatility: {volatility_val:.4f}<br>
+                        2024 Exports: ${export_val:.2f} Billion
+                    </div>
+                    """, unsafe_allow_html=True)
+
+# Statistical Analysis Page
+elif page == "Statistical Analysis":
+    st.markdown("<h2 class='sub-header'>Statistical & Forecasting Analysis</h2>", unsafe_allow_html=True)
+    
+    # Distribution of growth rates
+    st.subheader("Distribution of Average Annual Growth Rates")
+    
+    # Calculate mean and standard deviation for normal distribution
+    mean_growth = growth_df['avg_growth'].mean()
+    std_growth = growth_df['avg_growth'].std()
+    
+    # Create histogram with normal distribution overlay
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    
+    # Add histogram
+    fig.add_trace(
+        go.Histogram(
+            x=growth_df['avg_growth'] * 100,  # Convert to percentage
+            name="Frequency",
+            nbinsx=20,
+            marker_color='rgba(73, 160, 181, 0.7)'
+        )
+    )
+    
+    # Generate normal distribution curve
+    x = np.linspace(
+        growth_df['avg_growth'].min() * 100,
+        growth_df['avg_growth'].max() * 100,
+        100
+    )
+    y = stats.norm.pdf(x, mean_growth * 100, std_growth * 100)
+    
+    # Scale the normal distribution to match histogram height
+    hist_max = np.histogram(growth_df['avg_growth'] * 100, bins=20)[0].max()
+    pdf_max = max(y)
+    scale_factor = hist_max / pdf_max
+    
+    # Add normal distribution curve
+    fig.add_trace(
+        go.Scatter(
+            x=x,
+            y=y * scale_factor,
+            mode='lines',
+            name='Normal Distribution',
+            line=dict(color='red', width=2)
+        ),
+        secondary_y=False
+    )
+    
+    fig.update_layout(
+        title='Distribution of Average Annual Growth Rates with Normal Distribution Overlay',
+        xaxis_title='Average Annual Growth Rate (%)',
+        yaxis_title='Frequency',
+        bargap=0.1
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Top and Bottom Performers
+    st.subheader("Top and Bottom Performers")
+    
+    # Identify top and bottom 10% performers
+    top_performers = growth_df[growth_df['percentile'] >= 0.9].sort_values('avg_growth', ascending=False)
+    bottom_performers = growth_df[growth_df['percentile'] <= 0.1].sort_values('avg_growth')
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("<h4>Top 10% Performers</h4>", unsafe_allow_html=True)
+        
+        for country in top_performers.index:
+            growth_val = top_performers.loc[country, 'avg_growth'] * 100
+            export_val = top_performers.loc[country, 'value_2024'] / 1e9
+            
+            st.markdown(f"""
+            <div class='highlight' style='background-color: #DCFCE7;'>
+                <b>{country}</b><br>
+                Growth Rate: {growth_val:.2f}%<br>
+                2024 Exports: ${export_val:.2f} Billion
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("<h4>Bottom 10% Performers</h4>", unsafe_allow_html=True)
+        
+        for country in bottom_performers.index:
+            growth_val = bottom_performers.loc[country, 'avg_growth'] * 100
+            export_val = bottom_performers.loc[country, 'value_2024'] / 1e9
+            
+            st.markdown(f"""
+            <div class='highlight' style='background-color: #FEE2E2;'>
+                <b>{country}</b><br>
+                Growth Rate: {growth_val:.2f}%<br>
+                2024 Exports: ${export_val:.2f} Billion
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Visualize performance segments on histogram
+    st.subheader("Performance Segments Visualization")
+    
+    # Create a column for performance category
+    growth_df['performance_category'] = 'Average'
+    growth_df.loc[growth_df['percentile'] >= 0.9, 'performance_category'] = 'Top Performers'
+    growth_df.loc[growth_df['percentile'] <= 0.1, 'performance_category'] = 'Underperformers'
+    
+    # Create histogram with colored segments
+    fig = px.histogram(
+        growth_df,
+        x='avg_growth',
+        color='performance_category',
+        nbins=20,
+        labels={'avg_growth': 'Average Annual Growth Rate'},
+        title='Distribution of Growth Rates by Performance Category',
+        color_discrete_map={
+            'Top Performers': 'green',
+            'Average': 'gray',
+            'Underperformers': 'red'
+        }
+    )
+    
+    # Convert x-axis to percentage
+    fig.update_layout(
+        xaxis_title='Average Annual Growth Rate (%)',
+        xaxis=dict(tickformat='.1%')
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Box plot of growth rates
+    st.subheader("Box Plot of Growth Rates")
+    
+    fig = px.box(
+        growth_df,
+        y='avg_growth',
+        points='all',
+        hover_name=growth_df.index,
+        labels={'avg_growth': 'Average Annual Growth Rate'},
+        title='Box Plot of Average Annual Growth Rates'
+    )
+    
+    # Convert y-axis to percentage
+    fig.update_layout(
+        yaxis_title='Average Annual Growth Rate (%)',
+        yaxis=dict(tickformat='.1%')
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Insights for Guidance Tamil Nadu / Invest Tamil Nadu
+    st.markdown("<h3 class='sub-header'>Key Insights for Guidance Tamil Nadu / Invest Tamil Nadu</h3>", unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div class='card'>
+    <h4>Investment Opportunities</h4>
+    <ul>
+        <li><strong>Target Stable High-Growth Countries:</strong> These represent the most reliable investment partners for Tamil Nadu's electrical machinery sector.</li>
+        <li><strong>Explore Volatile High-Growth Markets:</strong> These markets offer high growth potential but require risk mitigation strategies.</li>
+        <li><strong>Identify Complementary Industries:</strong> Look for countries where Tamil Nadu can fill supply chain gaps in the electrical machinery sector.</li>
+    </ul>
+    
+    <h4>Policy Recommendations</h4>
+    <ul>
+        <li><strong>Develop Targeted Export Promotion:</strong> Create country-specific export strategies based on the classification analysis.</li>
+        <li><strong>Establish Risk Management Frameworks:</strong> Develop protocols for engaging with volatile markets to protect Tamil Nadu businesses.</li>
+        <li><strong>Invest in Innovation:</strong> Focus R&D investments on electrical machinery subsectors showing the highest global growth.</li>
+        <li><strong>Build Resilient Supply Chains:</strong> Diversify sourcing and export destinations to reduce vulnerability to market volatility.</li>
+    </ul>
     </div>
     """, unsafe_allow_html=True)
 
-else:
-    st.error("Failed to load the data. Please check if the CSV file is available and properly formatted.")
-    
-    # Display demo mode message
-    st.warning("""
-    ### Demo Mode
-    
-    This dashboard is currently in demo mode. To use with real data:
-    
-    1. Upload your trade data CSV file using the sidebar uploader
-    2. Ensure your data contains the required columns: refYear, reporterDesc, primaryValue, fobvalue, partnerDesc, flowDesc
-    3. Refresh the page if needed after uploading
-    
-    For assistance, check the documentation or contact support.
-    """)
+# Footer
+st.markdown("""
+<div style='text-align: center; margin-top: 30px; padding: 10px; background-color: #F3F4F6; border-radius: 5px;'>
+    <p>Developed for Guidance Tamil Nadu / Invest Tamil Nadu Assessment</p>
+    <p>Data Source: UN Comtrade Database (HS Code 85: Electrical machinery and equipment)</p>
+</div>
+""", unsafe_allow_html=True)
