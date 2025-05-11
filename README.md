@@ -71,7 +71,7 @@ UN_Trade/
   * Volatile High-Growth
   * Stable Low-Growth
   * Volatile Low-Growth
-* **Visualize**: Present classifications using quadrant charts or labeled tables.([Scribd][2])
+
 
 ### Task 4: Statistical & Forecasting Analysis
 
