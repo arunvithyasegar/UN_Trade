@@ -1,10 +1,16 @@
-# UN Comtrade Trade Data Analysis: Electrical Machinery Exports (2016–2024)
+# 📦 UN Comtrade Trade Data Analysis: Electrical Machinery Exports (2016–2024)
+
+> **Note**: This project was developed as part of the **Guidance Tamil Nadu BIU Team Assignment Task 1**, focusing on trade data analysis and visualization.
+
+---
+
+## 📊 Project Overview
 
 This project analyzes global export trends of electrical machinery and equipment (HS Code 85) using annual data from the UN Comtrade Database spanning 2016 to 2024. It encompasses data preparation, growth trend analysis, volatility assessment, statistical evaluation, and forecasting to identify high-growth and volatile exporters.
 
 ---
 
-## 📁 Dataset Overview
+## 📁 Dataset Details
 
 * **Source**: [UN Comtrade Database](https://comtradeplus.un.org/)
 * **Commodity**: HS Code 85 – Electrical machinery and equipment
@@ -13,7 +19,7 @@ This project analyzes global export trends of electrical machinery and equipment
 * **Partner**: World
 * **Frequency**: Annual
 * **Period**: 2016–2024
-* **Measure**: USD([UN Comtrade][1], [OECD][2], [GOV.UK][3])
+* **Measure**: USD([Investing in Tamil Nadu][1])
 
 ---
 
@@ -65,7 +71,7 @@ UN_Trade/
   * Volatile High-Growth
   * Stable Low-Growth
   * Volatile Low-Growth
-* **Visualize**: Present classifications using quadrant charts or labeled tables.([World Integrated Trade Solution][4], [GOV.UK][3])
+* **Visualize**: Present classifications using quadrant charts or labeled tables.([Scribd][2])
 
 ### Task 4: Statistical & Forecasting Analysis
 
@@ -80,7 +86,7 @@ UN_Trade/
 * **Line Plots**: Export trends over time for leading countries.
 * **Bar Charts**: Volatility comparisons among top exporters.
 * **Quadrant Charts**: Country classifications based on growth and volatility.
-* **Histograms & Boxplots**: Distribution analyses of growth rates.([OECD][2], [World Customs Organization][5])
+* **Histograms & Boxplots**: Distribution analyses of growth rates.
 
 ---
 
@@ -119,6 +125,14 @@ UN_Trade/
 
 ---
 
+## 📅 Live Dashboard
+
+Explore the interactive Streamlit dashboard showcasing key insights from the analysis:
+
+🔗 [Electronic Trade Dashboard](https://electronictradedashboard.streamlit.app/)
+
+---
+
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
@@ -135,19 +149,13 @@ For questions or feedback, please reach out to [Arun Vithyasegar](mailto:arunvit
 
 * [UN Comtrade Database](https://comtradeplus.un.org/)
 * [World Integrated Trade Solution (WITS)](https://wits.worldbank.org/)
-* [HS Nomenclature 2022 Edition](https://www.wcoomd.org/en/topics/nomenclature/instrument-and-tools/hs-nomenclature-2022-edition/hs-nomenclature-2022-edition.aspx)([UN Comtrade][6], [World Integrated Trade Solution][7], [World Customs Organization][5])
+* [HS Nomenclature 2022 Edition](https://www.wcoomd.org/en/topics/nomenclature/instrument-and-tools/hs-nomenclature-2022-edition/hs-nomenclature-2022-edition.aspx)
 
 ---
 
-*Note: This project utilizes publicly available data from the UN Comtrade Database, which stores over 1 billion trade data records from 1962 onwards. Over 140 reporter countries provide the United Nations Statistics Division with their annual international trade statistics detailed by commodities and partner countries. These data are subsequently transformed into the United Nations Statistics Division standard format with consistent coding and valuation using the UN/OECD CoprA internal processing system.* ([UNdata][8])
+\*Note: This project utilizes publicly available data from the UN Comtrade Database, which stores over 1 billion trade data records from 1962 onwards. Over 140 reporter countries provide the United Nations Statistics Division with their annual international trade statistics detailed by commodities and partner countries. These data are subsequently transformed into the United Nations Statistics Division standard format with consistent coding and valuation using the UN/OECD CoprA internal processing system.\* ([data.un.org](https://data.un.org/Data.aspx?d=ComTrade&f=_l1Code%3A85%3BcmdCode%3A852810&q=television&utm_source=chatgpt.com))
 
 ---
 
-[1]: https://comtradeplus.un.org/TradeFlow?AggregateBy=none&BreakdownMode=plus&CommodityCodes=TOTAL&Flows=X&Frequency=A&Partners=0&Reporters=842&period=all&utm_source=chatgpt.com "Trade Data - UN Comtrade"
-[2]: https://www.oecd.org/content/dam/oecd/en/publications/reports/2024/12/risks-and-resilience-in-global-trade_c8a001ff/1c66c439-en.pdf?utm_source=chatgpt.com "[PDF] Risks and Resilience in Global Trade - OECD"
-[3]: https://assets.publishing.service.gov.uk/media/68137af670b095d0d7011854/japan-trade-and-investment-factsheet-2025-05-02.pdf?utm_source=chatgpt.com "[PDF] Trade and Investment Factsheet - Japan - GOV.UK"
-[4]: https://wits.worldbank.org/trade/country-byhs6product.aspx?lang=en&utm_source=chatgpt.com "Trade Statistics by Product (HS 6-digit)"
-[5]: https://www.wcoomd.org/en/topics/nomenclature/instrument-and-tools/hs-nomenclature-2022-edition/hs-nomenclature-2022-edition.aspx?utm_source=chatgpt.com "HS Nomenclature 2022 edition - World Customs Organization"
-[6]: https://comtradeplus.un.org/TradeFlow?utm_source=chatgpt.com "Trade Data - UN Comtrade"
-[7]: https://wits.worldbank.org/?utm_source=chatgpt.com "World Integrated Trade Solution (WITS) | Data on Export, Import ..."
-[8]: https://data.un.org/Data.aspx?d=ComTrade&f=_l1Code%3A85%3BcmdCode%3A852810&q=television&utm_source=chatgpt.com "record view | Trade of goods, US$, HS, 85 Electrical machinery and ..."
+[1]: https://investingintamilnadu.com/DIGIGOV/StaticAttachment?AttachmentFileName=%2Fpdf%2Fpoli_noti%2FRFP2.pdf&utm_source=chatgpt.com "[PDF] GUIDANCE - Invest Tamil Nadu"
+[2]: https://www.scribd.com/document/599079021/1-Assignment-1-Guidance-2?utm_source=chatgpt.com "1 - Assignment 1 Guidance | PDF | Business | Computers - Scribd"
