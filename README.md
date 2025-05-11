@@ -1,4 +1,4 @@
-# 📦 UN Comtrade Trade Data Analysis: Electrical Machinery Exports (2016–2024)
+# 📦 UN Comtrade Trade Data Analysis: Electrical Machinery Exports (2016–2024) BIU Assignment (Part 1)
 
 > **Note**: This project was developed as part of the **Guidance Tamil Nadu BIU Team Assignment Task 1**, focusing on trade data analysis and visualization.
 
