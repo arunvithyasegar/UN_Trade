@@ -135,7 +135,7 @@ Explore the interactive Streamlit dashboard showcasing key insights from the ana
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is created exclusively for the BIU Assignment at [Guidance Tamil Nadu](https://investingintamilnadu.com/DIGIGOV/TN-pages/guidance.jsp?pagedisp=static) and is not intended for commercial or production use.
 
 ---
 
